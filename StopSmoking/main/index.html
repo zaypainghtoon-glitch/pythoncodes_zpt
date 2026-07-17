@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#6c5ce7" />
+    <title>Stop Smoking Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle day/night">🌙</button>
+        <h1>Smoke Tracker</h1>
+        <p class="subtitle">Tap once for each cigarette you smoked today.</p>
+
+        <div class="count-button-wrapper">
+          <button id="countButton" class="count-button" aria-label="Add one cigarette">
+            <span class="button-text">+</span>
+          </button>
+          <button id="removeButton" class="remove-button" aria-label="Remove one cigarette">−</button>
+        </div>
+
+        <div class="counter-panel">
+          <div class="counter-label">Today</div>
+          <div id="counterValue" class="counter-value">0</div>
+          <div class="counter-caption">cigarettes</div>
+        </div>
+
+        <div class="money-panel">
+          <div class="counter-label">Money left</div>
+          <div id="moneyValue" class="counter-value money-value">500</div>
+          <div class="counter-caption">yen</div>
+        </div>
+
+        <button id="resetButton" class="secondary-button">Reset today</button>
+
+        <div class="history-panel">
+          <div class="counter-label">Recent days</div>
+          <ul id="historyList" class="history-list"></ul>
+        </div>
+        <div class="charts-link">
+          <a href="charts.html" class="secondary-button">View monthly charts</a>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
