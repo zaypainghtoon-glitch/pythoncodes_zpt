@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Monthly Charts</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <h1>Monthly Chart</h1>
+        <p class="subtitle">View the current month and check last month’s totals.</p>
+
+        <div class="chart-controls">
+          <button id="toggleMonth" class="secondary-button">Check last month</button>
+        </div>
+
+        <div class="chart-block single-chart">
+          <canvas id="chartCurrent"></canvas>
+        </div>
+
+        <div style="margin-top:18px">
+          <a href="index.html" class="secondary-button">Back</a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      function loadStored() {
+        try {
+          return JSON.parse(localStorage.getItem('smoke-tracker-data')) || { days: {} };
+        } catch (e) {
+          return { days: {} };
+        }
+      }
+
+      function getMonthKeyParts(date) {
+        // date like YYYY-MM-DD
+        const [y, m, d] = date.split('-').map(Number);
+        return { year: y, month: m - 1, day: d };
+      }
+
+      function daysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
+      }
+
+      function monthLabel(year, month) {
+        return `${year}-${String(month + 1).padStart(2, '0')}`;
+      }
+
+      function getCountsForMonth(daysMap, year, month) {
+        const totalDays = daysInMonth(year, month);
+        const counts = new Array(totalDays).fill(0);
+        Object.keys(daysMap).forEach((k) => {
+          if (!k) return;
+          const parts = getMonthKeyParts(k);
+          if (parts.year === year && parts.month === month) {
+            const idx = parts.day - 1;
+            if (idx >= 0 && idx < totalDays) counts[idx] = Number(daysMap[k].count) || 0;
+          }
+        });
+        return counts;
+      }
+
+      function buildLabels(n) {
+        return Array.from({ length: n }, (_, i) => String(i + 1));
+      }
+
+      let activeChartInstance = null;
+
+      function renderBar(canvasId, labels, data, title) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        if (activeChartInstance) {
+          activeChartInstance.destroy();
+        }
+        activeChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: title,
+                data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+              }
+            ]
+          },
+          options: {
+            scales: {
+              x: {
+                title: { display: true, text: 'Day of month' },
+                ticks: {
+                  autoSkip: true,
+                  maxTicksLimit: 10,
+                  maxRotation: 45,
+                  minRotation: 45
+                }
+              },
+              y: { title: { display: true, text: 'Cigarettes' }, suggestedMin: 0, suggestedMax: 30 }
+            },
+            plugins: { legend: { display: false } },
+            maintainAspectRatio: false
+          }
+        });
+      }
+
+      function updateChart(daysMap, year, month) {
+        const counts = getCountsForMonth(daysMap, year, month);
+        const labels = buildLabels(counts.length);
+        const title = `${monthLabel(year, month)}`;
+        document.querySelector('.chart-controls .active-month')?.remove();
+        const titleBadge = document.createElement('div');
+        titleBadge.className = 'active-month';
+        titleBadge.textContent = title;
+        document.querySelector('.chart-controls').appendChild(titleBadge);
+        renderBar('chartCurrent', labels, counts, title);
+      }
+
+      (function () {
+        const stored = loadStored();
+        const daysMap = stored.days || {};
+
+        const now = new Date();
+        const currYear = now.getFullYear();
+        const currMonth = now.getMonth();
+
+          const thisMonth = { year: currYear, month: currMonth };
+        const lastMonth = { year: new Date(currYear, currMonth - 1, 1).getFullYear(), month: new Date(currYear, currMonth - 1, 1).getMonth() };
+        updateChart(daysMap, thisMonth.year, thisMonth.month);
+
+        const toggleButton = document.getElementById('toggleMonth');
+        toggleButton.addEventListener('click', () => {
+          const showLastMonth = toggleButton.textContent.trim() === 'Check last month';
+          if (showLastMonth) {
+            updateChart(daysMap, lastMonth.year, lastMonth.month);
+            toggleButton.textContent = 'Back to current month';
+          } else {
+            updateChart(daysMap, thisMonth.year, thisMonth.month);
+            toggleButton.textContent = 'Check last month';
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
